@@ -6,8 +6,6 @@ ARMA_PATH = "c:\\arma3" # set this to where your arma 3 install is
 ARMA_EXE = "arma3server_x64.exe" # don't change this unless you want 32 bit arma for some reason
 modString = "" # global variable for the modstring, empty by default
 
-
-
 def GetProcessId():
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == ARMA_EXE:
