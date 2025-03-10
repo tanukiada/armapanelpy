@@ -18,7 +18,9 @@ def GetProcessId():
         if proc.info['name'] == ARMA_EXE:
             return proc.info['pid']
 
-def StartServer():
+def StartServer(combobox):
+    with open(combobox.get(), encoding="utf-8") as f:
+        modString = f.read()
     psutil.Popen([f"{ARMA_PATH}\\{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
 
 def StopServer():
@@ -30,10 +32,10 @@ root = Tk()
 frm = ttk.Frame(root, padding=10)
 frm.grid()
 ttk.Label(frm, text="Arma Server Panel").grid(column=0, row=0)
-ttk.Button(frm, text="Start Server", command=StartServer).grid(column=0, row=2)
 ttk.Label(frm, text="Select Mod List: ").grid(column=0, row=1)
 combobox = ttk.Combobox(frm, state="readonly")
 combobox['values'] = GetModLists()
 combobox.grid(column=1, row=1)
+ttk.Button(frm, text="Start Server", command=lambda: StartServer(combobox)).grid(column=0, row=2)
 ttk.Button(frm, text="Stop Server", command=StopServer).grid(column=2, row=2)
 root.mainloop()
