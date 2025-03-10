@@ -19,7 +19,7 @@ def GetProcessId():
             return proc.info['pid']
 
 def StartServer(combobox):
-    with open(combobox.get(), encoding="utf-8") as f:
+    with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
         modString = f.read()
     psutil.Popen([f"{ARMA_PATH}\\{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
 
