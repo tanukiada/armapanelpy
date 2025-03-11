@@ -4,12 +4,14 @@ from dotenv import load_dotenv
 import requests
 import psutil
 import subprocess
+import logging
 import os
 
 load_dotenv()
 
 USER_NAME = os.getenv("USER_NAME")
 PASSWORD = os.getenv("PASSWORD")
+logger = logging.getLogger(__name__)
 ARMA_PATH = "c:\\arma3" # set this to where your arma 3 install is
 ARMA_EXE = "arma3server_x64.exe" # don't change this unless you want 32 bit arma for some reason
 
@@ -23,13 +25,18 @@ def GetProcessId():
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == ARMA_EXE:
             return proc.info['pid']
+        else:
+            return 0
 
 def GetAllMods():
     mods = []
     for fname in os.listdir(path=ARMA_PATH):
         if fname.startswith("@"):
             mods.append(fname)
-    return mods
+    if len(mods) > 0:
+        return mods
+    else:
+        return None
 
 def MakeKeyValueForMetaFile(mod):
     fileKeyValue = {}
@@ -52,7 +59,11 @@ def GetRemoteTimestamp(modID):
         'itemcount': 1,
         'publishedfileids[0]': modID
     }
-    steamRequest = requests.post('https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/', data=body)
+    try:
+        steamRequest = requests.post('https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/', data=body)
+        steamRequest.raise_for_status()
+    except requests.exceptions.HTTPError as error:
+        logging.info(error)
     jsonContent = steamRequest.json()
     jsonContent = jsonContent["response"]
     jsonContent = jsonContent["publishedfiledetails"]
@@ -73,32 +84,38 @@ def UpdateMod(mod, modID, USER_NAME, PASSWORD):
     subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {USER_NAME} -password {PASSWORD}")
 
 def UpdateAllMods():
-    if os.path.exists("log.txt"):
-        os.remove("log.txt")
     mods = GetAllMods()
-    for mod in mods:
-        modID = GetModId(mod)
-        remoteTime = GetRemoteTimestamp(modID)
-        localTime = GetLocalTimestamp(mod)
-        needsUpdate = CompareTimeStamps(remoteTime, localTime)
-        if needsUpdate:
-            UpdateMod(mod, modID, USER_NAME, PASSWORD)
-            with open('log.txt', "a+", encoding="utf-8") as f:
-                f.write(f"{mod} updated!\n")
-        else:
-            with open('log.txt', "a+", encoding="utf-8") as f:
-                f.write(f"{mod} did not need updated.\n")
-        
+    if mods is None:
+        logging.info('No mods found.')
+    else:
+        for mod in mods:
+            modID = GetModId(mod)
+            remoteTime = GetRemoteTimestamp(modID)
+            localTime = GetLocalTimestamp(mod)
+            needsUpdate = CompareTimeStamps(remoteTime, localTime)
+            if needsUpdate:
+                UpdateMod(mod, modID, USER_NAME, PASSWORD)
+                logging.info(f'{mod} updated successfully.')
+            else:
+                logging.info(f'{mod} does not need updating.')
+
 def StartServer(combobox):
     with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
         modString = f.read()
-    psutil.Popen([f"{ARMA_PATH}\\{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
+    try:
+        psutil.Popen([f"{ARMA_PATH}\\{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
+    except psutil.Error as error:
+        stringError = str(error)
+        logging.info(stringError)
 
 def StopServer():
     pid = GetProcessId()
-    process = psutil.Process(pid)
-    process.kill()
-    
+    if pid != 0:
+        process = psutil.Process(pid)
+        process.kill()
+
+logging.basicConfig(filename='log.txt', level=logging.INFO)
+logger.info('Started')
 root = Tk()
 root.resizable(False, False)
 frm = ttk.Frame(root, padding=10)
