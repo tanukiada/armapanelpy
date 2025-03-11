@@ -3,6 +3,7 @@ from tkinter import ttk
 from dotenv import load_dotenv
 import requests
 import psutil
+import subprocess
 import os
 
 load_dotenv()
@@ -68,10 +69,12 @@ def CompareTimeStamps(remote, local):
     elif remote <= local:
         return False
     
-def UpdatedMod(mod, modID):
-    
+def UpdateMod(mod, modID, USER_NAME, PASSWORD):
+    subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {USER_NAME} -password {PASSWORD}")
 
 def UpdateAllMods():
+    if os.path.exists("log.txt"):
+        os.remove("log.txt")
     mods = GetAllMods()
     for mod in mods:
         modID = GetModId(mod)
@@ -79,12 +82,12 @@ def UpdateAllMods():
         localTime = GetLocalTimestamp(mod)
         needsUpdate = CompareTimeStamps(remoteTime, localTime)
         if needsUpdate:
-            UpdateMod(mod, modID)
-            with open('log.txt', encoding="utf-8") as f:
-                f.write(f"{mod} updated!")
+            UpdateMod(mod, modID, USER_NAME, PASSWORD)
+            with open('log.txt', "a+", encoding="utf-8") as f:
+                f.write(f"{mod} updated!\n")
         else:
-            with open('log.txt', encoding="utf-8") as f:
-                f.write(f"{mod} did not need updated.")
+            with open('log.txt', "a+", encoding="utf-8") as f:
+                f.write(f"{mod} did not need updated.\n")
         
 def StartServer(combobox):
     with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
