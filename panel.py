@@ -3,7 +3,6 @@ from tkinter import ttk
 from dotenv import load_dotenv
 import requests
 import psutil
-import json
 import os
 
 load_dotenv()
@@ -53,22 +52,39 @@ def GetRemoteTimestamp(modID):
         'publishedfileids[0]': modID
     }
     steamRequest = requests.post('https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/', data=body)
-    return steamRequest
+    jsonContent = steamRequest.json()
+    jsonContent = jsonContent["response"]
+    jsonContent = jsonContent["publishedfiledetails"]
+    remoteTime = jsonContent[0]["time_updated"]
+    return remoteTime
 
 def GetLocalTimestamp(mod):
-    fileKeyValue = MakeKeyValueForMetaFile(mod)
-    return fileKeyValue['timestamp']
+    timeStamp = os.path.getmtime(f"{ARMA_PATH}\\{mod}")
+    return timeStamp
+
+def CompareTimeStamps(remote, local):
+    if remote > local:
+        return True
+    elif remote <= local:
+        return False
+    
+def UpdatedMod(mod, modID):
+    
 
 def UpdateAllMods():
     mods = GetAllMods()
     for mod in mods:
         modID = GetModId(mod)
-        UpdateTimestampRemote = GetRemoteTimestamp(modID)
-        jsonContent = UpdateTimestampRemote.json()
-        jsonContent = jsonContent["response"]
-        jsonContent = jsonContent["publishedfiledetails"]
-        remoteTime = jsonContent[0]["time_updated"]
+        remoteTime = GetRemoteTimestamp(modID)
         localTime = GetLocalTimestamp(mod)
+        needsUpdate = CompareTimeStamps(remoteTime, localTime)
+        if needsUpdate:
+            UpdateMod(mod, modID)
+            with open('log.txt', encoding="utf-8") as f:
+                f.write(f"{mod} updated!")
+        else:
+            with open('log.txt', encoding="utf-8") as f:
+                f.write(f"{mod} did not need updated.")
         
 def StartServer(combobox):
     with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
