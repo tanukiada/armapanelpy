@@ -1,23 +1,25 @@
 from tkinter import *
 from tkinter import ttk
 from dotenv import load_dotenv
+import tkinter as tk
 import requests
 import psutil
 import subprocess
 import logging
 import os
+import re
 
 load_dotenv()
 
 USER_NAME = os.getenv("USER_NAME")
 PASSWORD = os.getenv("PASSWORD")
 logger = logging.getLogger(__name__)
-ARMA_PATH = "c:\\arma3" # set this to where your arma 3 install is
+ARMA_PATH = "c:/arma3" # set this to where your arma 3 install is
 ARMA_EXE = "arma3server_x64.exe" # don't change this unless you want 32 bit arma for some reason
 
 def GetModLists():
     modList = []
-    for file in os.listdir(f"{ARMA_PATH}\\presets"):
+    for file in os.listdir(f"{ARMA_PATH}/presets"):
         modList.append(file)
         return modList
         
@@ -40,7 +42,7 @@ def GetAllMods():
 
 def MakeKeyValueForMetaFile(mod):
     fileKeyValue = {}
-    with open(f"{ARMA_PATH}\\{mod}\\meta.cpp") as f:
+    with open(f"{ARMA_PATH}/{mod}/meta.cpp") as f:
         fileContent = f.read()
     key_values = fileContent.splitlines()
     for key_value in key_values:
@@ -72,7 +74,7 @@ def GetRemoteTimestamp(modID):
     return remoteTime
 
 def GetLocalTimestamp(mod):
-    timeStamp = os.path.getmtime(f"{ARMA_PATH}\\{mod}")
+    timeStamp = os.path.getmtime(f"{ARMA_PATH}/{mod}")
     return timeStamp
 
 def CompareTimeStamps(remote, local):
@@ -80,9 +82,33 @@ def CompareTimeStamps(remote, local):
         return True
     elif remote <= local:
         return False
+
+def FindModName(modId):
+    body = {
+        'itemcount': 1,
+        'publishedfileids[0]': modId
+    }
+    try:
+        steamRequest = requests.post('https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/', data=body)
+        steamRequest.raise_for_status()
+    except requests.exceptions.HTTPError as error:
+        print(error)
+        logging.info(error)
+    jsonContent = steamRequest.json()
+    jsonContent = jsonContent["response"]
+    jsonContent = jsonContent["publishedfiledetails"]
+    modName = jsonContent[0]["title"]
+    return modName
     
 def UpdateMod(mod, modID, USER_NAME, PASSWORD):
-    subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {USER_NAME} -password {PASSWORD}")
+    mod = re.sub(r"[=\s_+-\.,\[\]\:\(\)']", "", mod)
+    try:
+        os.path.exists(f'@{mod}')
+    except OSError:
+        logging.info(f'{mod} does not exist, creating dir')
+        print(f'{mod} does not exist, creating dir')
+        os.mkdir(f"{ARMA_PATH}/@{mod}")
+    subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {USER_NAME} -password {PASSWORD} -dir {ARMA_PATH}/@{mod}")
 
 def UpdateAllMods():
     mods = GetAllMods()
@@ -104,10 +130,10 @@ def UpdateAllMods():
                 print(f'{mod} does not need updating.')
 
 def StartServer(combobox):
-    with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
+    with open(f"{ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
         modString = f.read()
     try:
-        psutil.Popen([f"{ARMA_PATH}\\{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
+        psutil.Popen([f"{ARMA_PATH}/{ARMA_EXE}", "-name=server", "-filePatching", "-config=server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
     except psutil.Error as error:
         stringError = str(error)
         logging.info(stringError)
@@ -134,4 +160,8 @@ ttk.Button(frm, text="Start Server", command=lambda: StartServer(combobox)).grid
 ttk.Button(frm, text="Stop Server", command=StopServer).grid(column=1, row=2)
 ttk.Separator(frm, orient='horizontal').grid(column=0, row=4, columnspan=3, sticky='ew')
 ttk.Button(frm, text="Update Mods", command=UpdateAllMods).grid(column=0, row=5)
+modIdEntry = ttk.Entry(frm)
+modIdEntry.grid(column=0, row=6)
+ttk.Button(frm, text="Download/Update Mod", command=lambda: UpdateMod(FindModName(modIdEntry.get()), modIdEntry.get(), USER_NAME, PASSWORD)).grid(column=1, row=6)
+
 root.mainloop()
