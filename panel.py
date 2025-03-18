@@ -63,6 +63,7 @@ def GetRemoteTimestamp(modID):
         steamRequest = requests.post('https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/', data=body)
         steamRequest.raise_for_status()
     except requests.exceptions.HTTPError as error:
+        print(error)
         logging.info(error)
     jsonContent = steamRequest.json()
     jsonContent = jsonContent["response"]
@@ -87,6 +88,7 @@ def UpdateAllMods():
     mods = GetAllMods()
     if mods is None:
         logging.info('No mods found.')
+        print("Searching for mods failed..")
     else:
         for mod in mods:
             modID = GetModId(mod)
@@ -96,8 +98,10 @@ def UpdateAllMods():
             if needsUpdate:
                 UpdateMod(mod, modID, USER_NAME, PASSWORD)
                 logging.info(f'{mod} updated successfully.')
+                print(f'{mod} updated successfully.')
             else:
                 logging.info(f'{mod} does not need updating.')
+                print(f'{mod} does not need updating.')
 
 def StartServer(combobox):
     with open(f"{ARMA_PATH}\\presets\\{combobox.get()}", encoding="utf-8") as f:
@@ -107,13 +111,14 @@ def StartServer(combobox):
     except psutil.Error as error:
         stringError = str(error)
         logging.info(stringError)
+        print(stringError)
 
 def StopServer():
     pid = GetProcessId()
     if pid != 0:
         process = psutil.Process(pid)
         process.kill()
-
+        
 logging.basicConfig(filename='log.txt', level=logging.INFO)
 logger.info('Started')
 root = Tk()
@@ -127,6 +132,6 @@ combobox['values'] = GetModLists()
 combobox.grid(column=1, row=1)
 ttk.Button(frm, text="Start Server", command=lambda: StartServer(combobox)).grid(column=0, row=2)
 ttk.Button(frm, text="Stop Server", command=StopServer).grid(column=1, row=2)
-ttk.Separator(frm, orient='horizontal').grid(column=0, row=3, columnspan=3, sticky='ew')
-ttk.Button(frm, text="Update Mods", command=UpdateAllMods).grid(column=0, row=4)
+ttk.Separator(frm, orient='horizontal').grid(column=0, row=4, columnspan=3, sticky='ew')
+ttk.Button(frm, text="Update Mods", command=UpdateAllMods).grid(column=0, row=5)
 root.mainloop()
