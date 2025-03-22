@@ -21,7 +21,7 @@ def GetModLists():
     modList = []
     for file in os.listdir(f"{ARMA_PATH}/presets"):
         modList.append(file)
-        return modList
+    return modList
         
 def GetProcessId():
     for proc in psutil.process_iter(['pid', 'name']):
@@ -129,6 +129,9 @@ def UpdateAllMods():
                 logging.info(f'{mod} does not need updating.')
                 print(f'{mod} does not need updating.')
 
+def DownloadModList():
+    
+
 def StartServer(combobox):
     with open(f"{ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
         modString = f.read()
@@ -163,5 +166,6 @@ ttk.Button(frm, text="Update Mods", command=UpdateAllMods).grid(column=0, row=5)
 modIdEntry = ttk.Entry(frm)
 modIdEntry.grid(column=0, row=6)
 ttk.Button(frm, text="Download/Update Mod", command=lambda: UpdateMod(FindModName(modIdEntry.get()), modIdEntry.get(), USER_NAME, PASSWORD)).grid(column=1, row=6)
+ttk.Button(frm, text="Download modlist", command=DownloadModList).grid(column=1, row=5)
 
 root.mainloop()
