@@ -121,7 +121,7 @@ class App:
         modName = jsonContent[0]["title"]
         return modName
         
-    def UpdateMod(self, mod, modID, USER_NAME, PASSWORD):
+    def UpdateMod(self, mod, modID):
         mod = re.sub(r"[=\s_+-\.,\[\]\:\(\)']", "", mod)
         try:
             os.path.exists(f'@{mod}')
@@ -129,7 +129,7 @@ class App:
             logging.info(f'{mod} does not exist, creating dir')
             print(f'{mod} does not exist, creating dir')
             os.mkdir(f"{App.ARMA_PATH}/@{mod}")
-        subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {USER_NAME} -password {PASSWORD} -dir {ARMA_PATH}/@{mod}")
+        subprocess.run(f"DepotDownloader.exe -app 107410 -pubfile {modID} -username {App.USER_NAME} -password {App.PASSWORD} -dir {App.ARMA_PATH}/@{mod}")
 
     def UpdateAllMods(self):
         mods = App.GetAllMods()
@@ -171,7 +171,7 @@ class App:
         modDict = {key: value for key, value in zip(modListName, modListID)}
 
         for name, id in modDict.items():
-            App.UpdateMod(name, id, App.USER_NAME, App.PASSWORD)
+            App.UpdateMod(name, id)
             
     def StartServer(self, combobox):
         with open(f"{App.ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
