@@ -40,7 +40,7 @@ class App:
         ttk.Button(frm, text="Update Mods", command=App.UpdateAllMods).grid(column=0, row=5)
         modIdEntry = ttk.Entry(frm)
         modIdEntry.grid(column=0, row=6)
-        ttk.Button(frm, text="Download/Update Mod", command=lambda: App.UpdateMod(App.FindModName(modIdEntry.get()), modIdEntry.get(), App.USER_NAME, App.PASSWORD)).grid(column=1, row=6)
+        ttk.Button(frm, text="Download/Update Mod", command=lambda: App.UpdateMod(App.FindModName(modIdEntry.get()), modIdEntry.get())).grid(column=1, row=6)
         ttk.Button(frm, text="Download modlist", command=App.DownloadModList).grid(column=1, row=5)
 
         root.mainloop()
