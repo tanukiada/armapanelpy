@@ -171,7 +171,11 @@ class App:
         modDict = {key: value for key, value in zip(modListName, modListID)}
 
         for name, id in modDict.items():
-            App.UpdateMod(name, id)
+            if os.path.isdir(self.ARMA_PATH + "/@" + name):
+                print("mod exists.. skipping")
+                logging.info("mod exists.. skipping")
+            else:
+                App.UpdateMod(name, id)
             
     def StartServer(self, combobox):
         with open(f"{App.ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
