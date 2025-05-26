@@ -52,7 +52,7 @@ class App:
 
     def CheckPort(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex('127.0.0.1', self.PORT)
+        result = sock.connect_ex(('127.0.0.1', self.PORT))
         while result == 0:
             if result == 0:
                 return self.PORT + 10
