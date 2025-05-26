@@ -198,7 +198,7 @@ class App:
                 App.UpdateMod(name, id)
             
     def StartServer(self, combobox, combobox2):
-        serverName = combobox2
+        serverName = combobox2.get()
         with open(f"{App.ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
             modString = f.read()
         try:
@@ -207,7 +207,6 @@ class App:
             stringError = str(error)
             logging.info(stringError)
             print(stringError)
-        print(serverName)
 
     def StopServer(self):
         App.ARMA_PROCESS.terminate()
