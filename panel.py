@@ -207,6 +207,7 @@ class App:
             stringError = str(error)
             logging.info(stringError)
             print(stringError)
+        print(serverName)
 
     def StopServer(self):
         App.ARMA_PROCESS.terminate()
