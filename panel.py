@@ -37,7 +37,7 @@ class App:
         combobox.grid(column=1, row=1)
         ttk.Button(frm, text="Start Server", command=lambda: App.StartServer(combobox, combobox2)).grid(column=0, row=2)
         ttk.Button(frm, text="Stop Server", command=App.StopServer).grid(column=1, row=2)
-        ttk.Separator(frm, orient='horizontal').grid(column=0, row=4, columnspan=3, sticky='ew')
+        ttk.Separator(frm, orient='horizontal').grid(column=0, row=5, columnspan=3, sticky='ew')
         ttk.Button(frm, text="Update Mods", command=App.UpdateAllMods).grid(column=0, row=6)
         modIdEntry = ttk.Entry(frm)
         modIdEntry.grid(column=0, row=7)
