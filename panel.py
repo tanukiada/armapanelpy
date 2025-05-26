@@ -43,10 +43,10 @@ class App:
         modIdEntry.grid(column=0, row=7)
         ttk.Button(frm, text="Download/Update Mod", command=lambda: App.UpdateMod(App.FindModName(modIdEntry.get()), modIdEntry.get())).grid(column=1, row=7)
         ttk.Button(frm, text="Download modlist", command=App.DownloadModList).grid(column=1, row=6)
-        ttk.Label(frm, text="Server Profile: ").grid(column=4, row = 1)
+        ttk.Label(frm, text="Server Profile: ").grid(column=0, row = 4)
         combobox2 = ttk.Combobox(frm, state="readonly")
         combobox2['values'] = App.GetProfiles()
-        combobox2.grid(column=4, row=1)
+        combobox2.grid(column=1, row=4)
 
         root.mainloop()
 
