@@ -9,7 +9,7 @@ import subprocess
 import logging
 import os
 import re
-
+import socket
 
 class App:
     def __init__(self):
@@ -21,6 +21,7 @@ class App:
         self.ARMA_PATH = "c:/arma3" # set this to where your arma 3 install is
         self.ARMA_EXE = "arma3server_x64.exe" # don't change this unless you want 32 bit arma for some reason
         self.ARMA_PROCESS = None
+        self.PORT = 2302
 
     def RunApp(self):
         logging.basicConfig(filename='log.txt', level=logging.INFO)
@@ -34,16 +35,35 @@ class App:
         combobox = ttk.Combobox(frm, state="readonly")
         combobox['values'] = App.GetModLists()
         combobox.grid(column=1, row=1)
-        ttk.Button(frm, text="Start Server", command=lambda: App.StartServer(combobox)).grid(column=0, row=2)
+        ttk.Button(frm, text="Start Server", command=lambda: App.StartServer(combobox, combobox2)).grid(column=0, row=2)
         ttk.Button(frm, text="Stop Server", command=App.StopServer).grid(column=1, row=2)
         ttk.Separator(frm, orient='horizontal').grid(column=0, row=4, columnspan=3, sticky='ew')
-        ttk.Button(frm, text="Update Mods", command=App.UpdateAllMods).grid(column=0, row=5)
+        ttk.Button(frm, text="Update Mods", command=App.UpdateAllMods).grid(column=0, row=6)
         modIdEntry = ttk.Entry(frm)
-        modIdEntry.grid(column=0, row=6)
-        ttk.Button(frm, text="Download/Update Mod", command=lambda: App.UpdateMod(App.FindModName(modIdEntry.get()), modIdEntry.get())).grid(column=1, row=6)
-        ttk.Button(frm, text="Download modlist", command=App.DownloadModList).grid(column=1, row=5)
+        modIdEntry.grid(column=0, row=7)
+        ttk.Button(frm, text="Download/Update Mod", command=lambda: App.UpdateMod(App.FindModName(modIdEntry.get()), modIdEntry.get())).grid(column=1, row=7)
+        ttk.Button(frm, text="Download modlist", command=App.DownloadModList).grid(column=1, row=6)
+        ttk.Label(frm, text="Server Profile: ").grid(column=4, row = 1)
+        combobox2 = ttk.Combobox(frm, state="readonly")
+        combobox2['values'] = App.GetProfiles()
+        combobox2.grid(column=4, row=1)
 
         root.mainloop()
+
+    def CheckPort(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1'), self.PORT)
+        while result == 0:
+            if result == 0:
+                return self.PORT+10
+            else:
+                return self.PORT
+
+    def GetProfiles(self):
+        profiles = []
+        with open('profiles.txt', encoding="utf-8") as f:
+            profiles = f.read()
+        return profiles
 
     def GetModLists(self):
         modList = []
@@ -177,11 +197,12 @@ class App:
             else:
                 App.UpdateMod(name, id)
             
-    def StartServer(self, combobox):
+    def StartServer(self, combobox, combobox2):
+        serverName = combobox2
         with open(f"{App.ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
             modString = f.read()
         try:
-            App.ARMA_PROCESS = psutil.Popen([f"{App.ARMA_PATH}/{App.ARMA_EXE}", f"-name={serverName}", f"-port={serverPort}", "-filePatching", f"-config={serverName}_server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
+            App.ARMA_PROCESS = psutil.Popen([f"{App.ARMA_PATH}/{App.ARMA_EXE}", f"-name={serverName}", f"-port={self.PORT}", "-filePatching", f"-config={serverName}_server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
         except psutil.Error as error:
             stringError = str(error)
             logging.info(stringError)
