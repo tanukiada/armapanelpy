@@ -53,11 +53,10 @@ class App:
         port = 2302
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', port))
-        while result == 0:
-            if result == 0:
-                return port + 10
-            else:
-                return port
+        if result == 0:
+            return port + 10
+        else:
+            return port
 
     def GetProfiles(self):
         profiles = []
