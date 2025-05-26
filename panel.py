@@ -21,7 +21,6 @@ class App:
         self.ARMA_PATH = "c:/arma3" # set this to where your arma 3 install is
         self.ARMA_EXE = "arma3server_x64.exe" # don't change this unless you want 32 bit arma for some reason
         self.ARMA_PROCESS = None
-        self.PORT = 2302
 
     def RunApp(self):
         logging.basicConfig(filename='log.txt', level=logging.INFO)
@@ -51,13 +50,14 @@ class App:
         root.mainloop()
 
     def CheckPort(self):
+        port = 2302
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', self.PORT))
         while result == 0:
             if result == 0:
-                return self.PORT + 10
+                return port + 10
             else:
-                return self.PORT
+                return port
 
     def GetProfiles(self):
         profiles = []
