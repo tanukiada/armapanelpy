@@ -202,7 +202,7 @@ class App:
         with open(f"{App.ARMA_PATH}/presets/{combobox.get()}", encoding="utf-8") as f:
             modString = f.read()
         try:
-            App.ARMA_PROCESS = psutil.Popen([f"{App.ARMA_PATH}/{App.ARMA_EXE}", f"-name={serverName}", f"-port={CheckPort()}", "-filePatching", f"-config={serverName}_server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
+            App.ARMA_PROCESS = psutil.Popen([f"{App.ARMA_PATH}/{App.ARMA_EXE}", f"-name={serverName}", f"-port={self.CheckPort()}", "-filePatching", f"-config={serverName}_server.cfg", "-cfg=basic.cfg", f"-mod={modString}", "-servermod=@AdvancedUrbanRappelling;@AdvancedRappelling;@AdvancedSlingLoading;@AdvancedTowing"])
         except psutil.Error as error:
             stringError = str(error)
             logging.info(stringError)
